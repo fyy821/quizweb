@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quizora — Test Your Mind</title>
+  
+<style>
+:root{
+  --bg:#060b14;--card:#0b1422;--card2:#07101c;--text:#f4f7fb;
+  --muted:#93a4b8;--blue:#4f8cff;--blue2:#77a9ff;
+  --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
+  --border:rgba(255,255,255,.09)
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:Arial,sans-serif;background:
+  radial-gradient(circle at 85% 10%,rgba(79,140,255,.14),transparent 32%),var(--bg);
+  color:var(--text);min-height:100vh;padding:30px 16px
+}
+button{font:inherit;cursor:pointer}
+.app{width:100%;max-width:850px;margin:auto}
+.brand{text-align:center;margin:15px 0 30px}
+.brand-name{font-weight:800;letter-spacing:5px;color:var(--blue2);font-size:.95rem}
+.brand h1{font-size:clamp(2.8rem,8vw,5rem);line-height:1;margin:9px 0 12px}
+.brand h1 span{color:var(--blue)}
+.brand p,.muted{color:var(--muted)}
+.card{
+  background:rgba(11,20,34,.96);border:1px solid var(--border);
+  border-radius:22px;padding:30px;box-shadow:0 25px 70px rgba(0,0,0,.28)
+}
+.big-icon{text-align:center;font-size:4rem;margin-bottom:12px}
+#startScreen{text-align:center}
+#startScreen h2{font-size:2rem;margin-bottom:8px}
+#startScreen>.muted{margin-bottom:28px}
+label{display:block;text-align:left;color:var(--muted);font-size:.8rem;font-weight:700;letter-spacing:1px;margin:20px 0 10px}
+.category-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.choice{
+  background:var(--card2);color:var(--text);border:1px solid var(--border);
+  border-radius:13px;padding:14px 9px;transition:.2s
+}
+.choice:hover{transform:translateY(-2px);border-color:var(--blue)}
+.choice.selected{border-color:var(--blue);background:rgba(79,140,255,.13);box-shadow:0 0 0 1px rgba(79,140,255,.18)}
+.category-choice strong{display:block;font-size:.92rem}
+.category-choice small{display:block;color:var(--muted);margin-top:4px;font-size:.72rem}
+.difficulty-grid,.time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.primary{
+  width:100%;margin-top:24px;padding:15px;border:0;border-radius:12px;
+  background:var(--blue);color:#fff;font-weight:800;transition:.2s
+}
+.primary:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.hidden{display:none!important}
+.quiz-top{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:.9rem;margin-bottom:15px}
+.timer-wrap{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.timer{min-width:48px;text-align:center;font-size:1.15rem;font-weight:800;color:var(--blue2)}
+.timer.warning{color:var(--red)}
+.timer-bar{height:7px;background:var(--card2);border-radius:20px;overflow:hidden;flex:1}
+#timerBar{height:100%;width:100%;background:var(--blue);transition:width 1s linear}
+.progress{height:7px;background:var(--card2);border-radius:20px;overflow:hidden;margin-bottom:25px}
+#progress{height:100%;width:0;background:var(--blue);transition:.3s}
+.difficulty-badge{display:inline-block;padding:6px 10px;border-radius:8px;background:var(--card2);color:var(--blue2);font-size:.78rem;font-weight:700;margin-bottom:12px}
+.question{font-size:1.55rem;line-height:1.4;margin-bottom:23px}
+.answers{display:grid;gap:11px}
+.answer{
+  width:100%;text-align:left;padding:15px;border-radius:12px;
+  background:var(--card2);color:var(--text);border:1px solid var(--border);transition:.2s
+}
+.answer:hover:not(:disabled){border-color:var(--blue);transform:translateX(3px)}
+.answer.correct{border-color:var(--green);background:rgba(34,197,94,.12)}
+.answer.wrong{border-color:var(--red);background:rgba(239,68,68,.12)}
+.answer:disabled{cursor:default}
+.result-card{text-align:center}
+.result-emoji{font-size:4.5rem;min-height:80px}
+.result-label{color:var(--blue2);font-size:.8rem;font-weight:800;letter-spacing:2px;margin-top:10px}
+.result-card h2{font-size:2rem;margin:7px 0}
+.final-score{font-size:4.5rem;font-weight:900;color:var(--blue2);margin:5px 0}
+.result-message{font-size:1.15rem;font-weight:800;margin:10px 0}
+.result-detail{margin-bottom:5px}
+footer{text-align:center;color:var(--muted);font-size:.8rem;margin:20px 0}
+.shake{animation:shake .55s ease}
+.pop{animation:pop .65s ease}
+.pulse{animation:pulse .8s ease}
+@keyframes shake{0%,100%{transform:translateX(0) rotate(0)}20%{transform:translateX(-9px) rotate(-1deg)}40%{transform:translateX(9px) rotate(1deg)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes pop{0%{transform:scale(.6);opacity:.2}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@media(max-width:700px){
+  .category-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:500px){
+  body{padding:18px 10px}.card{padding:20px}
+  .quiz-top{font-size:.78rem}.question{font-size:1.25rem}
+  .difficulty-grid,.time-grid{grid-template-columns:1fr}
+}
+
+</style>
+</head>
+<body>
+  <main class="app">
+    <header class="brand">
+      <div class="brand-name">QUIZORA</div>
+      <h1>Test Your <span>Mind.</span></h1>
+      <p>Quiz random dengan kategori, tingkat kesulitan, dan batas waktu.</p>
+    </header>
+
+    <section class="card" id="startScreen">
+      <div class="big-icon">🧠</div>
+      <h2>Siap mulai?</h2>
+      <p class="muted">Pilih kategori, kesulitan, dan waktu. Kamu akan mendapat 5 soal secara acak.</p>
+
+      <label>PILIH KATEGORI</label>
+      <div class="category-grid" id="categoryGrid"></div>
+
+      <label>PILIH KESULITAN</label>
+      <div class="difficulty-grid" id="difficultyGrid">
+        <button class="choice selected" data-difficulty="easy">🟢 Mudah</button>
+        <button class="choice" data-difficulty="medium">🟡 Sedang</button>
+        <button class="choice" data-difficulty="hard">🔴 Sulit</button>
+      </div>
+
+      <label>BATAS WAKTU PER SOAL</label>
+      <div class="time-grid" id="timeGrid"></div>
+
+      <button class="primary" id="startBtn">Mulai Quiz 🚀</button>
+    </section>
+
+    <section class="card quiz-card hidden" id="quizScreen">
+      <div class="quiz-top">
+        <span id="questionNumber">Soal 1 / 5</span>
+        <span id="categoryName">Pengetahuan Umum</span>
+        <span id="scoreDisplay">Skor: 0</span>
+      </div>
+
+      <div class="timer-wrap">
+        <div class="timer" id="timer">15</div>
+        <div class="timer-bar"><div id="timerBar"></div></div>
+      </div>
+
+      <div class="progress"><div id="progress"></div></div>
+
+      <div class="difficulty-badge" id="difficultyBadge">Mudah</div>
+      <h2 id="questionText" class="question"></h2>
+      <div id="answers" class="answers"></div>
+
+      <button class="primary hidden" id="nextBtn">Soal Berikutnya →</button>
+    </section>
+
+    <section class="card result-card hidden" id="resultScreen">
+      <div id="resultEmoji" class="result-emoji">🏆</div>
+      <div class="result-label">HASIL QUIZORA</div>
+      <h2 id="resultTitle">Quiz Selesai!</h2>
+      <div class="final-score" id="finalScore">0/10</div>
+      <p id="resultMessage" class="result-message"></p>
+      <p id="resultDetail" class="muted"></p>
+      <button class="primary" id="againBtn">🔄 Main Lagi</button>
+    </section>
+
+    <footer>Quizora · Challenge your knowledge.</footer>
+  </main>
+  <script>
+
+const questionBank = [{category:"general",difficulty:"easy",question:'Planet terbesar di tata surya adalah?',answers:['Mars', 'Jupiter', 'Venus', 'Merkurius'],correct:1},
+{category:"general",difficulty:"easy",question:'Ibukota Jepang adalah?',answers:['Osaka', 'Kyoto', 'Tokyo', 'Nagoya'],correct:2},
+{category:"general",difficulty:"easy",question:'Hewan tercepat di darat adalah?',answers:['Singa', 'Cheetah', 'Kuda', 'Serigala'],correct:1},
+{category:"general",difficulty:"easy",question:'Satelit alami Bumi adalah?',answers:['Mars', 'Bulan', 'Matahari', 'Venus'],correct:1},
+{category:"general",difficulty:"easy",question:'Samudra terbesar di dunia adalah?',answers:['Atlantik', 'Hindia', 'Arktik', 'Pasifik'],correct:3},
+{category:"general",difficulty:"medium",question:'Gas yang paling banyak di atmosfer Bumi adalah?',answers:['Oksigen', 'Nitrogen', 'Karbon dioksida', 'Hidrogen'],correct:1},
+{category:"general",difficulty:"medium",question:'Alat untuk mengukur tekanan udara adalah?',answers:['Barometer', 'Termometer', 'Higrometer', 'Altimeter'],correct:0},
+{category:"general",difficulty:"medium",question:'Benua terbesar di dunia adalah?',answers:['Afrika', 'Asia', 'Eropa', 'Australia'],correct:1},
+{category:"general",difficulty:"medium",question:'Mata uang Jepang adalah?',answers:['Won', 'Yuan', 'Yen', 'Ringgit'],correct:2},
+{category:"general",difficulty:"medium",question:'Lapisan atmosfer tempat terjadinya sebagian besar cuaca adalah?',answers:['Troposfer', 'Stratosfer', 'Mesosfer', 'Termosfer'],correct:0},
+{category:"general",difficulty:"hard",question:'Planet yang memiliki periode rotasi paling panjang di antara delapan planet adalah?',answers:['Merkurius', 'Venus', 'Mars', 'Neptunus'],correct:1},
+{category:"general",difficulty:"hard",question:'Titik di permukaan Bumi yang tepat di atas pusat gempa disebut?',answers:['Hiposentrum', 'Episentrum', 'Seismograf', 'Magnitudo'],correct:1},
+{category:"general",difficulty:"hard",question:'Garis lintang 0° disebut?',answers:['Tropis', 'Meridian', 'Khatulistiwa', 'Antimeridian'],correct:2},
+{category:"general",difficulty:"hard",question:'Unsur dengan simbol Fe adalah?',answers:['Fluorin', 'Besi', 'Fosfor', 'Perak'],correct:1},
+{category:"general",difficulty:"hard",question:'Ibukota Mongolia adalah?',answers:['Astana', 'Ulaanbaatar', 'Tashkent', 'Bishkek'],correct:1},
+{category:"math",difficulty:"easy",question:'12 + 8 = ?',answers:['18', '20', '22', '24'],correct:1},
+{category:"math",difficulty:"easy",question:'25 × 4 = ?',answers:['75', '90', '100', '125'],correct:2},
+{category:"math",difficulty:"easy",question:'144 ÷ 12 = ?',answers:['10', '11', '12', '14'],correct:2},
+{category:"math",difficulty:"easy",question:'√81 = ?',answers:['7', '8', '9', '10'],correct:2},
+{category:"math",difficulty:"easy",question:'15² = ?',answers:['125', '200', '225', '250'],correct:2},
+{category:"math",difficulty:"medium",question:'Jika 3x + 5 = 20, nilai x adalah?',answers:['3', '4', '5', '6'],correct:2},
+{category:"math",difficulty:"medium",question:'25% dari 240 adalah?',answers:['40', '50', '60', '70'],correct:2},
+{category:"math",difficulty:"medium",question:'Sebuah persegi memiliki sisi 9 cm. Luasnya adalah?',answers:['18', '36', '72', '81'],correct:3},
+{category:"math",difficulty:"medium",question:'2³ × 2² = ?',answers:['16', '24', '32', '64'],correct:2},
+{category:"math",difficulty:"medium",question:'Rata-rata dari 6, 8, dan 10 adalah?',answers:['7', '8', '9', '10'],correct:1},
+{category:"math",difficulty:"hard",question:'Jika 2x + 3 = 5x - 12, maka x = ?',answers:['4', '5', '6', '7'],correct:2},
+{category:"math",difficulty:"hard",question:'Sebuah segitiga memiliki alas 14 cm dan tinggi 9 cm. Luasnya?',answers:['54 cm²', '63 cm²', '72 cm²', '126 cm²'],correct:1},
+{category:"math",difficulty:"hard",question:'Jika f(x)=x²−4x+3, maka f(5)=?',answers:['6', '7', '8', '9'],correct:1},
+{category:"math",difficulty:"hard",question:'Hasil dari (3/4) ÷ (1/2) adalah?',answers:['1/2', '3/4', '3/2', '2'],correct:2},
+{category:"math",difficulty:"hard",question:'Sebuah harga Rp200.000 naik 15%. Harga barunya adalah?',answers:['Rp215.000', 'Rp225.000', 'Rp230.000', 'Rp235.000'],correct:2},
+{category:"technology",difficulty:"easy",question:'CPU pada komputer berfungsi utama untuk?',answers:['Menampilkan gambar', 'Mengolah instruksi', 'Mencetak dokumen', 'Menyimpan listrik'],correct:1},
+{category:"technology",difficulty:"easy",question:'RAM digunakan terutama untuk?',answers:['Penyimpanan sementara saat program berjalan', 'Mencetak file', 'Menghubungkan Wi-Fi', 'Menampilkan suara'],correct:0},
+{category:"technology",difficulty:"easy",question:'HTML digunakan untuk membuat?',answers:['Struktur halaman web', 'Database', 'Sistem operasi', 'Driver'],correct:0},
+{category:"technology",difficulty:"easy",question:'CSS digunakan untuk?',answers:['Mengatur tampilan halaman web', 'Menghapus virus', 'Membuat kabel', 'Mengompres RAM'],correct:0},
+{category:"technology",difficulty:"easy",question:'Perangkat untuk mengetik pada komputer adalah?',answers:['Mouse', 'Keyboard', 'Monitor', 'Speaker'],correct:1},
+{category:"technology",difficulty:"medium",question:'SSD biasanya lebih cepat daripada HDD karena?',answers:['Tidak memakai piringan mekanis', 'Lebih berat', 'Memakai tinta', 'Butuh internet'],correct:0},
+{category:"technology",difficulty:"medium",question:'Sistem operasi buatan Microsoft adalah?',answers:['Ubuntu', 'Windows', 'Android', 'FreeBSD'],correct:1},
+{category:"technology",difficulty:"medium",question:'Port umum untuk koneksi HTTPS adalah?',answers:['21', '25', '80', '443'],correct:3},
+{category:"technology",difficulty:"medium",question:'Satuan kapasitas data yang lebih besar dari MB adalah?',answers:['KB', 'GB', 'Bit', 'Byte'],correct:1},
+{category:"technology",difficulty:"medium",question:'Bahasa pemrograman yang namanya berasal dari hewan ular adalah?',answers:['Python', 'Java', 'Swift', 'Kotlin'],correct:0},
+{category:"technology",difficulty:"hard",question:'Apa fungsi utama BIOS/UEFI saat komputer mulai menyala?',answers:['Menginisialisasi hardware dan memulai proses boot', 'Mengedit foto', 'Menambah RAM fisik', 'Mengirim email'],correct:0},
+{category:"technology",difficulty:"hard",question:'Dalam komputer, cache CPU digunakan untuk?',answers:['Menyimpan data/instruksi yang sering diakses agar lebih cepat', 'Mengganti sistem operasi', 'Mendinginkan CPU secara langsung', 'Mencetak dokumen'],correct:0},
+{category:"technology",difficulty:"hard",question:'Apa arti virtual memory?',answers:['Menggunakan sebagian penyimpanan sebagai memori tambahan', 'RAM fisik yang lebih besar', 'CPU virtual di BIOS', 'Monitor cadangan'],correct:0},
+{category:"technology",difficulty:"hard",question:'Manakah yang termasuk bahasa markup, bukan bahasa pemrograman umum?',answers:['Python', 'HTML', 'Java', 'C++'],correct:1},
+{category:"technology",difficulty:"hard",question:'Enkripsi end-to-end berarti?',answers:['Pesan dienkripsi di pengirim dan baru didekripsi di penerima', 'Semua orang bisa membaca pesan', 'Data tidak perlu internet', 'File otomatis menjadi kecil'],correct:0},
+{category:"networking",difficulty:"easy",question:'Perangkat yang menghubungkan jaringan berbeda disebut?',answers:['Router', 'Keyboard', 'Monitor', 'Printer'],correct:0},
+{category:"networking",difficulty:"easy",question:'LAN adalah singkatan dari?',answers:['Local Area Network', 'Large Access Node', 'Local Access Number', 'Long Area Network'],correct:0},
+{category:"networking",difficulty:"easy",question:'Alamat yang digunakan untuk mengidentifikasi perangkat di jaringan IP disebut?',answers:['IP address', 'MAC screen', 'CPU address', 'USB ID'],correct:0},
+{category:"networking",difficulty:"easy",question:'Kabel jaringan Ethernet yang umum digunakan memakai konektor?',answers:['RJ45', 'RJ11', 'USB-C', 'HDMI'],correct:0},
+{category:"networking",difficulty:"easy",question:'Perangkat yang meneruskan frame dalam satu LAN berdasarkan MAC address adalah?',answers:['Switch', 'Router', 'Modem', 'Printer'],correct:0},
+{category:"networking",difficulty:"medium",question:'Subnet mask 255.255.255.0 setara dengan prefix?',answers:['/8', '/16', '/24', '/32'],correct:2},
+{category:"networking",difficulty:"medium",question:'IP 192.168.1.10 termasuk rentang private IPv4?',answers:['Ya', 'Tidak', 'Hanya jika publik', 'Hanya di server'],correct:0},
+{category:"networking",difficulty:"medium",question:'DNS berfungsi untuk?',answers:['Menerjemahkan nama domain ke alamat IP', 'Mengisi baterai', 'Mengompres kabel', 'Mengatur resolusi monitor'],correct:0},
+{category:"networking",difficulty:"medium",question:'DHCP biasanya digunakan untuk?',answers:['Memberikan konfigurasi IP secara otomatis', 'Mengenkripsi semua file', 'Membuat website', 'Memperbaiki keyboard'],correct:0},
+{category:"networking",difficulty:"medium",question:'Perintah ping terutama digunakan untuk menguji?',answers:['Konektivitas dan respons host', 'Kapasitas RAM', 'Suhu CPU', 'Kecepatan keyboard'],correct:0},
+{category:"networking",difficulty:"hard",question:'Berapa jumlah alamat IPv4 dalam subnet /26?',answers:['32', '64', '128', '256'],correct:1},
+{category:"networking",difficulty:"hard",question:'Default gateway pada sebuah host biasanya adalah?',answers:['Alamat perangkat yang menjadi jalan keluar ke jaringan lain', 'Nama komputer', 'Alamat printer', 'DNS publik saja'],correct:0},
+{category:"networking",difficulty:"hard",question:'Protokol yang umum digunakan untuk routing dinamis berbasis link-state adalah?',answers:['OSPF', 'FTP', 'HTTP', 'SMTP'],correct:0},
+{category:"networking",difficulty:"hard",question:'NAT pada router umumnya digunakan untuk?',answers:['Menerjemahkan alamat IP antara jaringan private dan public', 'Menambah ukuran monitor', 'Menghapus DNS', 'Mengganti kabel'],correct:0},
+{category:"networking",difficulty:"hard",question:'Alamat IPv4 10.0.0.0 termasuk jaringan private kelas/rentang?',answers:['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '127.0.0.0/8'],correct:0},
+{category:"geography",difficulty:"easy",question:'Negara dengan wilayah terluas di dunia adalah?',answers:['Kanada', 'Rusia', 'China', 'Brasil'],correct:1},
+{category:"geography",difficulty:"easy",question:'Gunung Everest berada di pegunungan?',answers:['Alpen', 'Andes', 'Himalaya', 'Rocky'],correct:2},
+{category:"geography",difficulty:"easy",question:'Benua tempat Indonesia berada adalah?',answers:['Asia', 'Afrika', 'Eropa', 'Amerika'],correct:0},
+{category:"geography",difficulty:"easy",question:'Sungai terpanjang di Amerika Selatan adalah?',answers:['Amazon', 'Nil', 'Yangtze', 'Mississippi'],correct:0},
+{category:"geography",difficulty:"easy",question:'Pulau terbesar di Indonesia adalah?',answers:['Jawa', 'Bali', 'Kalimantan', 'Madura'],correct:2},
+{category:"geography",difficulty:"medium",question:'Selat yang memisahkan Pulau Jawa dan Sumatra adalah?',answers:['Selat Malaka', 'Selat Sunda', 'Selat Makassar', 'Selat Lombok'],correct:1},
+{category:"geography",difficulty:"medium",question:'Gurun Sahara berada di benua?',answers:['Asia', 'Afrika', 'Australia', 'Amerika Selatan'],correct:1},
+{category:"geography",difficulty:"medium",question:'Ibu kota Australia adalah?',answers:['Sydney', 'Melbourne', 'Canberra', 'Perth'],correct:2},
+{category:"geography",difficulty:"medium",question:'Danau terbesar berdasarkan luas permukaan adalah?',answers:['Danau Victoria', 'Laut Kaspia', 'Danau Superior', 'Danau Baikal'],correct:1},
+{category:"geography",difficulty:"medium",question:'Garis bujur 0° melewati kota/observatorium?',answers:['Greenwich', 'Tokyo', 'Cairo', 'Jakarta'],correct:0},
+{category:"geography",difficulty:"hard",question:'Negara yang tidak memiliki garis pantai adalah?',answers:['Laos', 'Vietnam', 'Thailand', 'Malaysia'],correct:0},
+{category:"geography",difficulty:"hard",question:'Selat Malaka berada di antara Semenanjung Malaya dan?',answers:['Sumatra', 'Jawa', 'Kalimantan', 'Sulawesi'],correct:0},
+{category:"geography",difficulty:"hard",question:'Titik terendah daratan yang tidak berada di bawah laut adalah kawasan?',answers:['Laut Mati', 'Danau Titicaca', 'Danau Baikal', 'Lembah Amazon'],correct:0},
+{category:"geography",difficulty:"hard",question:'Pegunungan Andes membentang terutama di sisi mana Amerika Selatan?',answers:['Timur', 'Barat', 'Utara', 'Tengah'],correct:1},
+{category:"geography",difficulty:"hard",question:'Negara yang dilalui Sungai Danube paling banyak termasuk?',answers:['Jerman, Austria, Hungaria dan lainnya', 'Jepang, Korea dan China', 'Mesir dan Sudan saja', 'Kanada dan AS'],correct:0},
+{category:"science",difficulty:"easy",question:'Planet yang dikenal sebagai Planet Merah adalah?',answers:['Venus', 'Mars', 'Jupiter', 'Saturnus'],correct:1},
+{category:"science",difficulty:"easy",question:'Air mendidih pada tekanan standar sekitar?',answers:['0°C', '50°C', '100°C', '200°C'],correct:2},
+{category:"science",difficulty:"easy",question:'Organ yang memompa darah adalah?',answers:['Paru-paru', 'Jantung', 'Ginjal', 'Lambung'],correct:1},
+{category:"science",difficulty:"easy",question:'Gaya yang menarik benda menuju Bumi disebut?',answers:['Magnetisme', 'Gravitasi', 'Gesekan', 'Apung'],correct:1},
+{category:"science",difficulty:"easy",question:'Tumbuhan membuat makanan melalui proses?',answers:['Fotosintesis', 'Respirasi saja', 'Fermentasi', 'Evaporasi'],correct:0},
+{category:"science",difficulty:"medium",question:'Satuan SI untuk gaya adalah?',answers:['Joule', 'Watt', 'Newton', 'Pascal'],correct:2},
+{category:"science",difficulty:"medium",question:'Molekul yang membawa informasi genetik utama pada manusia adalah?',answers:['DNA', 'ATP', 'Air', 'Glukosa'],correct:0},
+{category:"science",difficulty:"medium",question:'Cahaya di ruang hampa bergerak dengan kecepatan sekitar?',answers:['300 km/s', '3.000 km/s', '300.000 km/s', '3.000.000 km/s'],correct:2},
+{category:"science",difficulty:"medium",question:'pH 7 pada skala standar menunjukkan sifat?',answers:['Asam', 'Netral', 'Basa', 'Radioaktif'],correct:1},
+{category:"science",difficulty:"medium",question:'Bagian sel yang mengatur banyak aktivitas sel dan menyimpan DNA adalah?',answers:['Membran', 'Nukleus', 'Ribosom', 'Dinding sel'],correct:1},
+{category:"science",difficulty:"hard",question:'Hukum Newton pertama berkaitan dengan?',answers:['Inersia', 'Aksi-reaksi', 'Energi kinetik', 'Tekanan'],correct:0},
+{category:"science",difficulty:"hard",question:'Partikel subatom bermuatan negatif adalah?',answers:['Proton', 'Neutron', 'Elektron', 'Foton'],correct:2},
+{category:"science",difficulty:"hard",question:'Reaksi yang menyerap energi panas dari lingkungan disebut?',answers:['Eksoterm', 'Endoterm', 'Netralisasi', 'Reduksi'],correct:1},
+{category:"science",difficulty:"hard",question:'Satuan SI untuk frekuensi adalah?',answers:['Hertz', 'Volt', 'Ohm', 'Tesla'],correct:0},
+{category:"science",difficulty:"hard",question:'Dalam fotosintesis, pigmen utama yang menangkap cahaya adalah?',answers:['Hemoglobin', 'Klorofil', 'Melanin', 'Keratin'],correct:1},
+{category:"history",difficulty:"easy",question:'Proklamasi Kemerdekaan Indonesia dibacakan pada tahun?',answers:['1942', '1945', '1948', '1950'],correct:1},
+{category:"history",difficulty:"easy",question:'Tokoh yang membacakan Proklamasi bersama Mohammad Hatta adalah?',answers:['Soekarno', 'Sutan Sjahrir', 'Ki Hajar Dewantara', 'Jenderal Sudirman'],correct:0},
+{category:"history",difficulty:"easy",question:'Candi Borobudur merupakan peninggalan bercorak?',answers:['Buddha', 'Yahudi', 'Romawi', 'Modern'],correct:0},
+{category:"history",difficulty:"easy",question:'Perang Dunia II berakhir pada tahun?',answers:['1943', '1944', '1945', '1946'],correct:2},
+{category:"history",difficulty:"easy",question:'Sumpah Pemuda diperingati setiap tanggal?',answers:['20 Mei', '17 Agustus', '28 Oktober', '10 November'],correct:2},
+{category:"history",difficulty:"medium",question:'Organisasi Budi Utomo berdiri pada tahun?',answers:['1905', '1908', '1912', '1920'],correct:1},
+{category:"history",difficulty:"medium",question:'Konferensi Asia-Afrika tahun 1955 diselenggarakan di?',answers:['Jakarta', 'Bandung', 'Surabaya', 'Yogyakarta'],correct:1},
+{category:"history",difficulty:"medium",question:'Kerajaan Majapahit terkenal berkembang di wilayah?',answers:['Nusantara', 'Eropa Barat', 'Amerika Utara', 'Afrika Utara'],correct:0},
+{category:"history",difficulty:"medium",question:'VOC didirikan oleh Belanda pada tahun?',answers:['1602', '1702', '1802', '1902'],correct:0},
+{category:"history",difficulty:"medium",question:'Tokoh yang dikenal sebagai Bapak Pendidikan Nasional adalah?',answers:['Ki Hajar Dewantara', 'Soekarno', 'Mohammad Hatta', 'Ahmad Dahlan'],correct:0},
+{category:"history",difficulty:"hard",question:'Perjanjian yang secara resmi mengakui kedaulatan Indonesia oleh Belanda pada akhir 1949 adalah?',answers:['Linggarjati', 'Renville', 'KMB', 'Roem-Royen'],correct:2},
+{category:"history",difficulty:"hard",question:'Revolusi Industri pertama bermula di negara?',answers:['Prancis', 'Inggris', 'Jerman', 'Italia'],correct:1},
+{category:"history",difficulty:"hard",question:'Kerajaan Sriwijaya dikenal sebagai kekuatan maritim yang berpusat di wilayah?',answers:['Sumatra', 'Jawa Timur', 'Sulawesi', 'Papua'],correct:0},
+{category:"history",difficulty:"hard",question:'Piagam Jakarta dirumuskan oleh sebuah panitia yang dikenal sebagai?',answers:['Panitia Sembilan', 'BPUPKI II', 'Komite Lima', 'Dewan Empat'],correct:0},
+{category:"history",difficulty:"hard",question:'Perang Dingin terutama merupakan persaingan geopolitik antara?',answers:['AS dan Uni Soviet', 'Jepang dan China', 'India dan Pakistan', 'Prancis dan Inggris'],correct:0}];
+
+const categoryInfo = {
+  general: ["🧠", "Pengetahuan Umum"],
+  math: ["➗", "Matematika"],
+  technology: ["💻", "Teknologi"],
+  networking: ["🌐", "Networking / TKJ"],
+  geography: ["🌎", "Geografi"],
+  science: ["🔬", "Sains"],
+  history: ["🏛️", "Sejarah"]
+};
+
+const categoryGrid = document.getElementById("categoryGrid");
+const difficultyGrid = document.getElementById("difficultyGrid");
+const timeGrid = document.getElementById("timeGrid");
+
+let selectedCategory = "general";
+let selectedDifficulty = "easy";
+let selectedTime = 10;
+let quizQuestions = [];
+let current = 0;
+let score = 0;
+let timerId = null;
+let timeLeft = 0;
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function renderCategories(){
+  categoryGrid.innerHTML="";
+  Object.entries(categoryInfo).forEach(([key,info])=>{
+    const btn=document.createElement("button");
+    btn.className="choice category-choice"+(key===selectedCategory?" selected":"");
+    btn.innerHTML=`<div style="font-size:1.5rem;margin-bottom:5px">${info[0]}</div><strong>${info[1]}</strong>`;
+    btn.onclick=()=>{
+      selectedCategory=key;
+      document.querySelectorAll(".category-choice").forEach(x=>x.classList.remove("selected"));
+      btn.classList.add("selected");
+      renderTimes();
+    };
+    categoryGrid.appendChild(btn);
+  });
+}
+
+function renderTimes(){
+  const times = selectedCategory==="general" ? [5,10,15] :
+                selectedCategory==="math" ? [15,25,40] : [10,20,30];
+  if(!times.includes(selectedTime)) selectedTime=times[1];
+  timeGrid.innerHTML="";
+  times.forEach(t=>{
+    const btn=document.createElement("button");
+    btn.className="choice"+(t===selectedTime?" selected":"");
+    btn.textContent=`${t} detik`;
+    btn.onclick=()=>{
+      selectedTime=t;
+      document.querySelectorAll("#timeGrid .choice").forEach(x=>x.classList.remove("selected"));
+      btn.classList.add("selected");
+    };
+    timeGrid.appendChild(btn);
+  });
+}
+
+difficultyGrid.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-difficulty]");
+  if(!btn)return;
+  selectedDifficulty=btn.dataset.difficulty;
+  document.querySelectorAll("[data-difficulty]").forEach(x=>x.classList.remove("selected"));
+  btn.classList.add("selected");
+});
+
+function prepareQuiz(){
+  // Ambil soal sesuai kategori dan kesulitan.
+  let pool=questionBank.filter(q=>q.category===selectedCategory && q.difficulty===selectedDifficulty);
+
+  // Jika pilihan tersebut kurang dari 5 soal, lengkapi dari kategori yang sama
+  // agar tombol Mulai Quiz tetap bisa dijalankan.
+  if(pool.length<5){
+    const categoryPool=questionBank.filter(q=>q.category===selectedCategory);
+    pool=shuffle(categoryPool);
+  }
+
+  quizQuestions=shuffle(pool).slice(0,5).map(q=>{
+    const options=shuffle(q.answers.map((text,i)=>({text,correct:i===q.correct})));
+    return {...q,answers:options.map(x=>x.text),correct:options.findIndex(x=>x.correct)};
+  });
+}
+
+function startQuiz(){
+  prepareQuiz();
+  if(quizQuestions.length<5){
+    alert("Soal untuk pilihan ini belum cukup.");
+    return;
+  }
+  current=0; score=0;
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("resultScreen").classList.add("hidden");
+  document.getElementById("quizScreen").classList.remove("hidden");
+  showQuestion();
+}
+
+function showQuestion(){
+  clearInterval(timerId);
+  const q=quizQuestions[current];
+  document.getElementById("questionNumber").textContent=`Soal ${current+1} / 5`;
+  document.getElementById("categoryName").textContent=categoryInfo[selectedCategory][1];
+  document.getElementById("scoreDisplay").textContent=`Skor: ${score}`;
+  document.getElementById("questionText").textContent=q.question;
+  const badge=document.getElementById("difficultyBadge");
+  badge.textContent=q.difficulty==="easy"?"🟢 Mudah":q.difficulty==="medium"?"🟡 Sedang":"🔴 Sulit";
+  const answers=document.getElementById("answers");
+  answers.innerHTML="";
+  q.answers.forEach((answer,i)=>{
+    const b=document.createElement("button");
+    b.className="answer";
+    b.textContent=`${String.fromCharCode(65+i)}. ${answer}`;
+    b.onclick=()=>selectAnswer(b,i);
+    answers.appendChild(b);
+  });
+  document.getElementById("progress").style.width=`${(current/5)*100}%`;
+  document.getElementById("nextBtn").classList.add("hidden");
+  startTimer();
+}
+
+function startTimer(){
+  timeLeft=selectedTime;
+  const timer=document.getElementById("timer");
+  const bar=document.getElementById("timerBar");
+  timer.classList.remove("warning");
+  timer.textContent=timeLeft;
+  bar.style.width="100%";
+  timerId=setInterval(()=>{
+    timeLeft--;
+    timer.textContent=timeLeft;
+    bar.style.width=`${Math.max(0,(timeLeft/selectedTime)*100)}%`;
+    if(timeLeft<=5)timer.classList.add("warning");
+    if(timeLeft<=0){
+      clearInterval(timerId);
+      timeUp();
+    }
+  },1000);
+}
+
+function lockAnswers(){
+  document.querySelectorAll(".answer").forEach(b=>b.disabled=true);
+}
+
+function timeUp(){
+  lockAnswers();
+  const buttons=document.querySelectorAll(".answer");
+  buttons[quizQuestions[current].correct].classList.add("correct");
+  document.getElementById("nextBtn").classList.remove("hidden");
+}
+
+function selectAnswer(button,index){
+  clearInterval(timerId);
+  lockAnswers();
+  const q=quizQuestions[current];
+  const buttons=document.querySelectorAll(".answer");
+  if(index===q.correct){
+    button.classList.add("correct");
+    score++;
+  }else{
+    button.classList.add("wrong");
+    buttons[q.correct].classList.add("correct");
+  }
+  document.getElementById("scoreDisplay").textContent=`Skor: ${score}`;
+  document.getElementById("nextBtn").classList.remove("hidden");
+}
+
+function nextQuestion(){
+  current++;
+  if(current<5)showQuestion();
+  else showResult();
+}
+
+function showResult(){
+  clearInterval(timerId);
+  document.getElementById("quizScreen").classList.add("hidden");
+  document.getElementById("resultScreen").classList.remove("hidden");
+
+  const emoji=document.getElementById("resultEmoji");
+  const title=document.getElementById("resultTitle");
+  const message=document.getElementById("resultMessage");
+  const detail=document.getElementById("resultDetail");
+  const card=document.getElementById("resultScreen");
+
+  card.classList.remove("shake","pop","pulse");
+  void card.offsetWidth;
+
+  document.getElementById("finalScore").textContent=`${score}/5`;
+  detail.textContent=`${categoryInfo[selectedCategory][1]} · ${selectedDifficulty==="easy"?"Mudah":selectedDifficulty==="medium"?"Sedang":"Sulit"}`;
+
+  if(score<=2){
+    emoji.textContent="🧠😭";
+    title.textContent="BANYAKIN BACA BUKU 🧠 ";
+    message.textContent="Coba lagi, jangan menyerah!";
+    card.classList.add("shake");
+  }else if(score>=5){
+    emoji.textContent="📉😂";
+    title.textContent="IQ NYA DIMANA DAH";
+    message.textContent="Tenang, ini cuma quiz kok 😭";
+    card.classList.add("shake");
+  }else if(score<=8){
+    emoji.textContent="😐";
+    title.textContent="LUMAYAN";
+    message.textContent="Masih bisa naik lagi.";
+    card.classList.add("pulse");
+  }else{
+    emoji.textContent="🧠😎🏆";
+    title.textContent="IQ + KETENANGAN = WIN";
+    message.textContent="Yah oke lah 👍";
+    card.classList.add("pop");
+  }
+}
+
+document.getElementById("startBtn").onclick=startQuiz;
+document.getElementById("nextBtn").onclick=nextQuestion;
+document.getElementById("againBtn").onclick=()=>{
+  document.getElementById("resultScreen").classList.add("hidden");
+  document.getElementById("startScreen").classList.remove("hidden");
+};
+
+renderCategories();
+renderTimes();
+
+</script>
+</body>
+</html>
